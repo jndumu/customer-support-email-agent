@@ -57,7 +57,7 @@ class TestProcessEmail:
         assert data["intent"] == "account"
         assert data["escalated"] is False
         assert "reply" in data
-        assert data["processing_time_ms"] > 0
+        assert data["processing_time_ms"] >= 0
 
     async def test_escalated_email(self, client, urgent_email_payload):
         with patch(

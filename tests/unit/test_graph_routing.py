@@ -16,7 +16,7 @@ def _state(**kwargs) -> AgentState:
         "priority": "medium",
         "confidence": 0.9,
         "sentiment": "neutral",
-        "escalate": False,
+        "escalation": False,
         "escalation_reason": "",
         "retrieved_docs": [],
         "draft_response": "",
@@ -38,7 +38,7 @@ class TestRouteAfterClassify:
         assert route_after_classify(_state(escalate=False)) == "retrieve"
 
     def test_routes_to_escalate_when_flagged(self):
-        assert route_after_classify(_state(escalate=True)) == "escalate"
+        assert route_after_classify(_state(escalate=True)) == "escalation"
 
 
 class TestRouteAfterReview:
@@ -48,12 +48,12 @@ class TestRouteAfterReview:
 
     def test_routes_to_escalate_when_human_review_needed(self):
         result = route_after_review(_state(review_passed=True, needs_human_review=True))
-        assert result == "escalate"
+        assert result == "escalation"
 
     def test_routes_to_escalate_when_review_failed(self):
         result = route_after_review(_state(review_passed=False, needs_human_review=False))
-        assert result == "escalate"
+        assert result == "escalation"
 
     def test_routes_to_escalate_when_both_failed(self):
         result = route_after_review(_state(review_passed=False, needs_human_review=True))
-        assert result == "escalate"
+        assert result == "escalation"
