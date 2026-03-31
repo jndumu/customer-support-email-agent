@@ -1,5 +1,1 @@
-"""Placeholder — replace with real unit tests."""
-
-
-def test_placeholder():
-    assert True
+# Replaced by real unit tests — see test_text_utils.py, test_schemas.py, etc.
