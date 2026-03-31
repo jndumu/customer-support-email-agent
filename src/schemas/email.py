@@ -1,6 +1,6 @@
 """Email request / response Pydantic schemas."""
 
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -16,7 +16,7 @@ class EmailRequest(BaseModel):
 
 class EmailResponse(BaseModel):
     email_id: str
-    status: str                        # processed | escalated | error
+    status: Literal["processed", "escalated", "error"]
     intent: str
     priority: str
     sentiment: str
@@ -43,3 +43,38 @@ class FollowUpRecord(BaseModel):
     scheduled_at: str
     note: str
     completed: bool = False
+
+
+class InboxEmailRecord(BaseModel):
+    """Full email record: original email + all agent pipeline outputs."""
+
+    email_id: str
+    received_at: str
+
+    sender: str
+    subject: str
+    body: str
+
+    status: Literal["processed", "escalated", "error"]
+    intent: str
+    priority: str
+    sentiment: str
+    confidence: float
+
+    escalated: bool
+    escalation_reason: Optional[str]
+
+    retrieved_docs: list[str]
+
+    draft_response: str
+    review_passed: bool
+    review_feedback: str
+    needs_human_review: bool
+
+    final_response: str
+
+    followup_scheduled: bool
+    followup_date: Optional[str]
+    followup_note: Optional[str]
+
+    processing_time_ms: float
