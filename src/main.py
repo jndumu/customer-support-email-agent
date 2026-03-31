@@ -1,46 +1,34 @@
 """FastAPI application entry point.
 
-APPLICATION ARCHITECTURE OVERVIEW:
-─────────────────────────────────────────────────────────────────────────────
-  HTTP Request
-      │
-      ▼
-  FastAPI (src/main.py)
-      │  CORS middleware → routes all /api/v1/* requests to api_router
-      ▼
-  API Router (src/api/v1/router.py)
-      │  /api/v1/emails/*     → emails.py endpoints
-      │  /api/v1/followups/*  → followups.py endpoints
-      │  /api/v1/health       → health.py endpoint
-      ▼
-  POST /api/v1/emails/process
-      │  Builds initial AgentState from request body
-      │  Calls agent_graph.ainvoke(state)
-      ▼
-  LangGraph Pipeline (src/graph/agent_graph.py)
-      │  ingest → classify → retrieve → draft → review → send
-      │                              ↘ escalate ↗
-      ▼
-  EmailResponse returned to caller
-─────────────────────────────────────────────────────────────────────────────
+PIPELINE FLOW:
+  HTTP Request → FastAPI → API Router → POST /api/v1/emails/process
+  → agent_graph.ainvoke(state)
+  → ingest → classify → retrieve → draft → review → send | escalate
+  → EmailResponse returned
 
-RUNNING THE APP:
-  uv run uvicorn src.main:app --reload
+UI PAGES (served as static HTML):
+  GET /          → test email composer  (src/static/index.html)
+  GET /inbox     → inbox / detail view  (src/static/inbox.html)
 
 API DOCS:
-  http://localhost:8000/docs  (Swagger UI)
-  http://localhost:8000/redoc (ReDoc)
+  GET /docs      → Swagger UI
+  GET /redoc     → ReDoc
 """
+
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.core.config import settings
 from src.core.logging import configure_logging
 from src.api.v1.router import api_router
 
-# Configure structured logging before anything else
 configure_logging()
+
+_STATIC_DIR = Path(__file__).parent / "static"
 
 app = FastAPI(
     title="Customer Support Email Agent",
@@ -54,7 +42,6 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Allow all origins in development — restrict in production
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -63,11 +50,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount all v1 routes under /api/v1
 app.include_router(api_router, prefix="/api/v1")
+
+# Serve static assets (CSS/JS if ever added)
+app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 
 @app.get("/health", tags=["Health"])
 async def health_check() -> dict:
-    """Top-level health check — confirms the app is running."""
     return {"status": "ok", "env": settings.APP_ENV}
+
+
+@app.get("/", include_in_schema=False)
+async def ui_index():
+    return FileResponse(_STATIC_DIR / "index.html")
+
+
+@app.get("/inbox", include_in_schema=False)
+async def ui_inbox():
+    return FileResponse(_STATIC_DIR / "inbox.html")
