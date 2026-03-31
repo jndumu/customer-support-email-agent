@@ -17,6 +17,10 @@ openai==1.59.7
 pydantic==2.10.5
 pydantic-settings==2.7.1
 
+# Pinecone
+pinecone==5.4.2
+langchain-pinecone==0.2.0
+
 # Utilities
 tenacity==9.0.0
 structlog==24.4.0

@@ -26,6 +26,13 @@ dependencies = [
     "pydantic==2.10.5",
     "pydantic-settings==2.7.1",
 
+    # Pinecone vector database
+    "pinecone==5.4.2",
+    "langchain-pinecone==0.2.0",
+
+    # Embeddings
+    "langchain-openai==0.3.6",
+
     # Utilities
     "tenacity==9.0.0",
     "structlog==24.4.0",
